@@ -9,8 +9,8 @@
   "roi" : {
       "x" : 150,
       "y" : 150,
-      "w" : 700,
-      "h" : 700
+      "w" : 450,
+      "h" : 450
   },
   "full_img" : false,
   "matching_algorithm" : "mgm",
@@ -30,5 +30,6 @@
   "skip_existing" : false,
   "msk_erosion": 0,
   "dsm_resolution": 0.5,
-  "utm_bbx" : [359746.062, 360105.562,7651554.000,7651923.000]
+  "utm_bbx" : [359746.062, 360105.562,7651554.000,7651923.000],
+  "triangulation_mode" : "geometric"
 }

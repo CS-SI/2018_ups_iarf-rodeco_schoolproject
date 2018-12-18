@@ -7,6 +7,8 @@
 #include <math.h>
 #include <libgen.h>
 
+#include <netcdf.h>
+
 #include "vvector.h"
 #include "../3rdparty/iio/iio.h"
 #include "rpc.h"
@@ -15,6 +17,30 @@
 #include "read_matrix.c"
 #include "parsenumbers.c"
 
+
+/* This is the name of the data file we will create. */
+#define FILE_NAME "data.nc"
+
+/* Setting dimension of 2D grid of image width x length */
+#define NDIMS 2
+/* Dimensions are defined as DXXX_NAME for their name and DXXX_IND for the
+  indice position in the dimension table */
+#define DWID_NAME "width"
+#define DWID_IND 0
+#define DLEN_NAME "length"
+#define DLEN_IND 1
+/* variables are defined as VXXX_NAME for their name and VXXX_IND for the
+  indice position in the variable table */
+#define VLON_NAME "longitude"
+#define VLON_IND 0
+#define VLAT_NAME "latitude"
+#define VLAT_IND 1
+#define VALT_NAME "altitude"
+#define VALT_IND 2
+
+/* Error handling */
+#define ERROR(e) {printf("Error: %s\n", nc_strerror(e)); exit(2);}
+
 void utm_alt_zone(double *out, double lat, double lon, int zone);
 void utm_zone(int *zone, bool *northp, double lat, double lon);
 
@@ -22,6 +48,30 @@ unsigned char test_little_endian(void)
 {
     int x = 1;
     return (*(char*) & (x) == 1);
+}
+
+void define_netcdf_file(char* file_name, int* ncid, int* dimids, int* varids, int width, int length) {
+  
+  int retval;
+  
+  if ((retval = nc_create(file_name, NC_CLOBBER, ncid)))
+    ERROR(retval);
+    
+  if ((retval = nc_def_dim(*ncid, DWID_NAME, width, &dimids[DWID_IND])))
+    ERROR(retval);
+  if ((retval = nc_def_dim(*ncid, DLEN_NAME, width, &dimids[DLEN_IND])))
+    ERROR(retval);
+  
+  if ((retval = nc_def_var(*ncid, VLON_NAME, NC_DOUBLE, NDIMS, dimids, &varids[VLON_IND])))
+    ERROR(retval);
+  if ((retval = nc_def_var(*ncid, VLAT_NAME, NC_DOUBLE, NDIMS, dimids, &varids[VLAT_IND])))
+    ERROR(retval);
+  if ((retval = nc_def_var(*ncid, VALT_NAME, NC_DOUBLE, NDIMS, dimids, &varids[VALT_IND])))
+    ERROR(retval);
+    
+  if((retval = nc_enddef(*ncid)))
+    ERROR(retval);
+  
 }
 
 void write_ply_header(FILE* f, bool ascii, int npoints, int zone, bool hem,
@@ -330,6 +380,11 @@ int main_disp_to_heights(int c, char *v[])
   
   char* plyfilename = v[1];
   const char *tile_dir = dirname(strdup(plyfilename));   
+  
+  char* ncfilename =  malloc(strlen(tile_dir)+strlen(FILE_NAME)+1);
+  strcpy(ncfilename,tile_dir);
+  strcat(ncfilename, FILE_NAME);
+  printf("%s",ncfilename);
 
   float *heightMap = malloc(width*height*sizeof(float));
   double *ecef = malloc(3*width*height*sizeof(double));
@@ -472,6 +527,9 @@ int main_disp_to_heights(int c, char *v[])
 	   }
        }
 
+   // define netCDF file content
+   int ncid, dimids[NDIMS], varids[NDIMS], retval;
+   define_netcdf_file(ncfilename, &ncid, dimids, varids, width, height);
    // print header for ply file
    FILE *ply_file = fopen(plyfilename, "w");
    if (ply_file)
@@ -571,7 +629,10 @@ int main_disp_to_heights(int c, char *v[])
      free(errMap_tab[i]);
    if (size_of_fout_err_tab > 1)
      free(errMap_tab);
-
+  
+  if ((retval = nc_close(ncid)))
+      ERROR(retval);
+  
    return 0;
 }
 
