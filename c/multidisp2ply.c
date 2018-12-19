@@ -24,8 +24,9 @@
 /* Setting dimension of 2D grid of image width x length */
 #define NDIMS 3
 #define NVARS 4
+#define NATRS 2
 /* Dimensions are defined as DXXX_NAME for their name and DXXX_IND for the
-  indice position in the dimension table */
+/* indice position in the dimension table */
 #define DWID_NAME "width"
 #define DWID_IND 0
 #define DLEN_NAME "length"
@@ -33,7 +34,7 @@
 #define DVIE_NAME "views"
 #define DVIE_IND 2
 /* variables are defined as VXXX_NAME for their name and VXXX_IND for the
-  indice position in the variable table */
+/* indice position in the variable table */
 #define VLON_NAME "longitude"
 #define VLON_IND 0
 #define VLAT_NAME "latitude"
@@ -42,6 +43,12 @@
 #define VALT_IND 2
 #define VVIE_NAME "views"
 #define VVIE_IND 3
+/* attribute associated with the vile are define as AXXX_NAME for their name and VXXX_ind
+/* for the indice in the attribute table */
+#define AROW_NAME "row"
+#define AROW_IND 0
+#define ACOL_NAME "column"
+#define ACOL_IND 1 
 
 /* Error handling */
 #define ERROR(e) {printf("Error: %s\n", nc_strerror(e)); exit(2);}
@@ -56,7 +63,7 @@ unsigned char test_little_endian(void)
 }
 
 void define_netcdf_file(char* file_name, int* ncid, int* dimids, int* varids,
-   int width, int length, int views) {
+   int width, int length, int views, int row, int col) {
 
   int retval;
 
@@ -70,15 +77,27 @@ void define_netcdf_file(char* file_name, int* ncid, int* dimids, int* varids,
   if ((retval = nc_def_dim(*ncid, DVIE_NAME, views, &dimids[DVIE_IND])))
     ERROR(retval);
 
+  double nan = 0.0;
   if ((retval = nc_def_var(*ncid, VLON_NAME, NC_DOUBLE, 2, dimids, &varids[VLON_IND])))
     ERROR(retval);
+  /*if ((retval = nc_def_var_fill(*ncid, varids[VLON_IND], 0, &nan)))
+    ERROR(retval);*/
   if ((retval = nc_def_var(*ncid, VLAT_NAME, NC_DOUBLE, 2, dimids, &varids[VLAT_IND])))
     ERROR(retval);
+  /*if ((retval = nc_def_var_fill(*ncid, varids[VLAT_IND], 0, &nan)))
+    ERROR(retval);*/
   if ((retval = nc_def_var(*ncid, VALT_NAME, NC_DOUBLE, 2, dimids, &varids[VALT_IND])))
     ERROR(retval);
-  if ((retval = nc_def_var(*ncid, VVIE_NAME, NC_DOUBLE, NDIMS, dimids, &varids[VVIE_IND])))
+  /*if ((retval = nc_def_var_fill(*ncid, varids[VALT_IND], 0, &nan)))
+    ERROR(retval);*/
+  if ((retval = nc_def_var(*ncid, VVIE_NAME, NC_INT, NDIMS, dimids, &varids[VVIE_IND])))
     ERROR(retval);
-
+    
+  if ((retval = nc_put_att(*ncid, NC_GLOBAL, AROW_NAME, NC_INT, 1, &row)))
+    ERROR(retval);
+  if ((retval = nc_put_att(*ncid, NC_GLOBAL, ACOL_NAME, NC_INT, 1, &col)))
+    ERROR(retval);
+    
   if((retval = nc_enddef(*ncid)))
     ERROR(retval);
 
@@ -423,7 +442,7 @@ int main_disp_to_heights(int c, char *v[])
   // define netCDF file content
   int ncid, dimids[NDIMS], varids[NVARS], retval;
   size_t stop[NDIMS] = {1,1,1};
-   define_netcdf_file(ncfilename, &ncid, dimids, varids, width, height, nb_sights);
+   define_netcdf_file(ncfilename, &ncid, dimids, varids, width, height, nb_sights, row_m, col_m);
   /* ----------------------------------------
   /* full_output initialisation
   /* ---------------------------------------- */
