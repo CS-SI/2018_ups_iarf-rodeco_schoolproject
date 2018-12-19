@@ -400,6 +400,7 @@ int main_disp_to_heights(int c, char *v[])
 	    else
 	      {
 		list_pairs.data[pid].process = true;
+    s2pnc_write_slave_coordinate(&ncs2p_output, x, y, list_pairs.data[pid].sight_slave, &(list_pairs.data[pid].q1[0]), &(list_pairs.data[pid].q1[1]));
 	      }
 	  }
 
@@ -422,8 +423,9 @@ int main_disp_to_heights(int c, char *v[])
 
 	    for(int s=0; s<local_nb_sights; s++)
 	      {
-		sum += pow(sights_list[s].err, 2.0);
-    s2pnc_write_view(&ncs2p_output, x, y, &sights_list[s].ID);
+    type_sight *sight = &sights_list[s];
+		sum += pow(sight->err, 2.0);
+    s2pnc_write_view(&ncs2p_output, x, y, &sight->ID);
 		nb_elt++;
 	      }
 

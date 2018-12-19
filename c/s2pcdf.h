@@ -6,7 +6,7 @@
 
 /* Setting dimension of 2D grid of image width x length */
 #define NDIMS 3
-#define NVARS 4
+#define NVARS 6
 #define NATRS 2
 /* Dimensions are defined as DXXX_NAME for their name and DXXX_IND for the
 /* indice position in the dimension table */
@@ -26,6 +26,10 @@
 #define VALT_IND 2
 #define VVIE_NAME "views"
 #define VVIE_IND 3
+#define VSLX_NAME "slaveimagex"
+#define VSLX_IND 4
+#define VSLY_NAME "slaveimagey"
+#define VSLY_IND 5
 /* attribute associated with the vile are define as AXXX_NAME for their name and VXXX_ind
 /* for the indice in the attribute table */
 #define AROW_NAME "row"
@@ -42,12 +46,32 @@ typedef struct {
   int varids[NVARS];
 } ncfile;
 
-void s2pnc_init_netcdf_file(const char* dir_file, ncfile* ncf,
-   int width, int length, int views, int row, int col);
+void s2pnc_init_netcdf_file(const char* dir_file,
+   ncfile* ncf,
+   int width,
+   int length,
+   int views,
+   int row,
+   int col);
 
-void s2pnc_write_view(ncfile* ncf, int x, int y, int *viewId);
+void s2pnc_write_view(ncfile* ncf,
+  int x,
+  int y,
+  int *viewId);
 
-void s2pnc_write_position(ncfile* ncf, int x, int y, double *lon, double *lat, double *alt);
+void s2pnc_write_slave_coordinate(ncfile* ncf,
+  int x,
+  int y,
+  int viewId,
+  double *imx,
+  double *imy);
+
+void s2pnc_write_position(ncfile* ncf,
+  int x,
+  int y,
+  double *lon,
+  double *lat,
+  double *alt);
 
 void s2pnc_close_netcdf_file(ncfile* ncf);
 
