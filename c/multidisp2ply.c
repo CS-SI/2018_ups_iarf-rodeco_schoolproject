@@ -7,8 +7,6 @@
 #include <math.h>
 #include <libgen.h>
 
-#include <netcdf.h>
-
 #include "vvector.h"
 #include "../3rdparty/iio/iio.h"
 #include "rpc.h"
@@ -16,42 +14,7 @@
 #include "coordconvert.h"
 #include "read_matrix.c"
 #include "parsenumbers.c"
-
-
-/* This is the name of the data file we will create. */
-#define FILE_NAME "/data.nc"
-
-/* Setting dimension of 2D grid of image width x length */
-#define NDIMS 3
-#define NVARS 4
-#define NATRS 2
-/* Dimensions are defined as DXXX_NAME for their name and DXXX_IND for the
-/* indice position in the dimension table */
-#define DWID_NAME "width"
-#define DWID_IND 0
-#define DLEN_NAME "length"
-#define DLEN_IND 1
-#define DVIE_NAME "views"
-#define DVIE_IND 2
-/* variables are defined as VXXX_NAME for their name and VXXX_IND for the
-/* indice position in the variable table */
-#define VLON_NAME "longitude"
-#define VLON_IND 0
-#define VLAT_NAME "latitude"
-#define VLAT_IND 1
-#define VALT_NAME "altitude"
-#define VALT_IND 2
-#define VVIE_NAME "views"
-#define VVIE_IND 3
-/* attribute associated with the vile are define as AXXX_NAME for their name and VXXX_ind
-/* for the indice in the attribute table */
-#define AROW_NAME "row"
-#define AROW_IND 0
-#define ACOL_NAME "column"
-#define ACOL_IND 1 
-
-/* Error handling */
-#define ERROR(e) {printf("Error: %s\n", nc_strerror(e)); exit(2);}
+#include "s2pcdf.h"
 
 void utm_alt_zone(double *out, double lat, double lon, int zone);
 void utm_zone(int *zone, bool *northp, double lat, double lon);
@@ -60,47 +23,6 @@ unsigned char test_little_endian(void)
 {
     int x = 1;
     return (*(char*) & (x) == 1);
-}
-
-void define_netcdf_file(char* file_name, int* ncid, int* dimids, int* varids,
-   int width, int length, int views, int row, int col) {
-
-  int retval;
-
-  if ((retval = nc_create(file_name, NC_CLOBBER, ncid)))
-    ERROR(retval);
-
-  if ((retval = nc_def_dim(*ncid, DWID_NAME, width, &dimids[DWID_IND])))
-    ERROR(retval);
-  if ((retval = nc_def_dim(*ncid, DLEN_NAME, length, &dimids[DLEN_IND])))
-    ERROR(retval);
-  if ((retval = nc_def_dim(*ncid, DVIE_NAME, views, &dimids[DVIE_IND])))
-    ERROR(retval);
-
-  double nan = 0.0;
-  if ((retval = nc_def_var(*ncid, VLON_NAME, NC_DOUBLE, 2, dimids, &varids[VLON_IND])))
-    ERROR(retval);
-  /*if ((retval = nc_def_var_fill(*ncid, varids[VLON_IND], 0, &nan)))
-    ERROR(retval);*/
-  if ((retval = nc_def_var(*ncid, VLAT_NAME, NC_DOUBLE, 2, dimids, &varids[VLAT_IND])))
-    ERROR(retval);
-  /*if ((retval = nc_def_var_fill(*ncid, varids[VLAT_IND], 0, &nan)))
-    ERROR(retval);*/
-  if ((retval = nc_def_var(*ncid, VALT_NAME, NC_DOUBLE, 2, dimids, &varids[VALT_IND])))
-    ERROR(retval);
-  /*if ((retval = nc_def_var_fill(*ncid, varids[VALT_IND], 0, &nan)))
-    ERROR(retval);*/
-  if ((retval = nc_def_var(*ncid, VVIE_NAME, NC_INT, NDIMS, dimids, &varids[VVIE_IND])))
-    ERROR(retval);
-    
-  if ((retval = nc_put_att(*ncid, NC_GLOBAL, AROW_NAME, NC_INT, 1, &row)))
-    ERROR(retval);
-  if ((retval = nc_put_att(*ncid, NC_GLOBAL, ACOL_NAME, NC_INT, 1, &col)))
-    ERROR(retval);
-    
-  if((retval = nc_enddef(*ncid)))
-    ERROR(retval);
-
 }
 
 void write_ply_header(FILE* f, bool ascii, int npoints, int zone, bool hem,
@@ -179,15 +101,15 @@ static void alloc_full_outputs (float ***img_vec_tab,
   *rpj_vec_tab = (float **) malloc(nb_sights*sizeof( float * ));
   for(int i=0;i<nb_sights;i++)
     (*rpj_vec_tab)[i] = (float *) malloc(3*width*height*sizeof( float ));
-
+  
   // we wish we could know
   // the number of views used for each pixel
   // as well as which views have been used for each pixel
-  *nb_views = (int *) calloc(width*height, sizeof(int)); // view <=> sight
+  *nb_views = (int *) calloc(width*height, sizeof(int)); // view <=> sight  
   *img_selected_views = (int **) malloc(nb_sights*sizeof(int * ));
   for(int i=0;i<nb_sights;i++)
-    (*img_selected_views)[i] = (int *) calloc(width*height, sizeof(int));
-
+    (*img_selected_views)[i] = (int *) calloc(width*height, sizeof(int));  
+  
   // let's vizualise sights !
   char buf[1000];
   sprintf(buf,"%s/sights.obj",tile_dir);
@@ -227,13 +149,13 @@ static void update_full_outputs(float ***img_vec_tab,
       // err by sight : dist from opt point to sight i
       // (index 0 of errMap_tab is dedicated to rms error)
       (*errMap_tab)[sights_list[s].ID][posH] = sights_list[s].err;
-
+      
       // vec err by sight : vector from opt point to sight i
       // (sights numbered from 1 to N so index = ID-1)
       for(int t=0; t<3; t++)
 	(*img_vec_tab)[sights_list[s].ID-1][width*3*y+3*x+t] =
 	  sights_list[s].err_vec_ptopt_to_sight[t+3] - sights_list[s].err_vec_ptopt_to_sight[t];
-
+      
       // same vectors as above, but reprojected into
       // ref image (so two components : drow and dcol)
       // (sights numbered from 1 to N so index = ID-1)
@@ -247,20 +169,20 @@ static void update_full_outputs(float ***img_vec_tab,
 			  sights_list[s].err_vec_ptopt_to_sight[4],
 			  sights_list[s].err_vec_ptopt_to_sight[5],
 			  &lgt2,&lat2,&alt2);
-
+      
       eval_rpci(pos1, &list_pairs->data[0].rpc_master, lgt1, lat1, alt1);
       eval_rpci(pos2, &list_pairs->data[0].rpc_master, lgt2, lat2, alt2);
-
+      
       for(int t=0; t<2; t++)
 	(*rpj_vec_tab)[sights_list[s].ID-1][width*3*y+3*x+t] = pos2[t]-pos1[t];
-
+      
       // nb of sights used for current pixel
       (*nb_views)[posH] = local_nb_sights;
-
+      
       // tells which sight has been used for current pixel
       // (sights numbered from 1 to N so index = ID-1)
       (*img_selected_views)[sights_list[s].ID-1][posH]=1;
-
+      
       // build obj
       double objpoint1[3],objpoint2[3];
       for(int t=0; t<3; t++)
@@ -289,7 +211,7 @@ static void free_full_outputs(float ***img_vec_tab,
   sprintf(buf, "%s/nb_sights.tif",tile_dir);
   iio_save_image_int(buf, *nb_views, width, height);
   free(*nb_views);
-
+  
   for(int i=0;i<nb_sights;i++)
     {
       sprintf(buf,"%s/selected_sight_%d.tif",tile_dir,i+1);
@@ -319,7 +241,7 @@ static void free_full_outputs(float ***img_vec_tab,
 
 static void help(char *s)
 {
-
+  
   fprintf(stderr, "\t usage: %s out.ply N --disp[1..N] disp.tif"
 	  "--rpc_ref rpc_ref.xml --rpc_sec[1..N] rpc_sec.xml [--color colors.png] "
 	  "[--utm-zone ZONE] [--ascii]"
@@ -343,6 +265,7 @@ int main_disp_to_heights(int c, char *v[])
   bool hem;
   const char *utm_string = pick_option(&c, &v, "-utm-zone", "no_utm_zone");
   parse_utm_string(&zone, &hem, utm_string);
+  ncfile ncs2p_output;
 
   // ascii flag
   bool ascii = pick_option(&c, &v, "-ascii", NULL);
@@ -380,16 +303,16 @@ int main_disp_to_heights(int c, char *v[])
       char buf[100];
       list_pairs.data[i].ID = i+1;
       list_pairs.data[i].sight_slave = i+2;
-
+	
       int *nx = &list_pairs.data[i].nx;
       int *ny = &list_pairs.data[i].ny;
       int *nch = &list_pairs.data[i].nch;
 
-      sprintf(buf, "-disp%d", i+1);
+      sprintf(buf, "-disp%d", i+1);  
       const char *disp_string = pick_option(&c, &v, buf, "");
       list_pairs.data[i].dispx = iio_read_image_float_split(disp_string, nx, ny, nch);
       list_pairs.data[i].dispy = list_pairs.data[i].dispx + (*nx)*(*ny);
-
+	
       sprintf(buf, "-rpc_sec%d", i+1);
       char *rpc_sec_string = pick_option(&c, &v, buf, "");
       read_rpc_file_xml(&list_pairs.data[i].rpc_master, rpc_ref_string);
@@ -405,29 +328,24 @@ int main_disp_to_heights(int c, char *v[])
   // need at least one pair to do something
   if (list_pairs.real_size == 0)
     return 1;
-
-
+    
+  
   char* plyfilename = v[1];
-  const char *tile_dir = dirname(strdup(plyfilename));
-
-  char* ncfilename =  malloc(strlen(tile_dir)+strlen(FILE_NAME)+1);
-  strcpy(ncfilename,tile_dir);
-  strcat(ncfilename, FILE_NAME);
-  printf("%s",ncfilename);
+  const char *tile_dir = dirname(strdup(plyfilename));   
 
   float *heightMap = malloc(width*height*sizeof(float));
   double *ecef = malloc(3*width*height*sizeof(double));
-
+    
   int size_of_fout_err_tab;
   if (full_outputs)
     size_of_fout_err_tab = nb_sights+1;
   else
     size_of_fout_err_tab = 1;
-
+    
   float **errMap_tab = (float **) malloc((size_of_fout_err_tab)*sizeof(float *));
   for(int i=0; i<size_of_fout_err_tab; i++)
     errMap_tab[i] = (float *) calloc(width*height, sizeof(float));
-
+    
   for (int y = 0; y < height; y++)
     for (int x = 0; x < width; x++)
       {
@@ -435,14 +353,7 @@ int main_disp_to_heights(int c, char *v[])
 	for(int t=0; t<3; t++)
 	  ecef[width*3*y+3*x+t] = NAN;
       }
-
-  /*-----------------------------------
-  /*netcdf initialisation
-  /*-----------------------------------*/
-  // define netCDF file content
-  int ncid, dimids[NDIMS], varids[NVARS], retval;
-  size_t stop[NDIMS] = {1,1,1};
-   define_netcdf_file(ncfilename, &ncid, dimids, varids, width, height, nb_sights, row_m, col_m);
+	  
   /* ----------------------------------------
   /* full_output initialisation
   /* ---------------------------------------- */
@@ -450,6 +361,8 @@ int main_disp_to_heights(int c, char *v[])
   int *nb_views, **img_selected_views;
   FILE *obj_file;
   unsigned int vertex_index = 1;
+  
+  s2pnc_init_netcdf_file(tile_dir, &ncs2p_output, width, height, nb_sights, row_m, col_m);
 
   if (full_outputs)
     {
@@ -474,7 +387,7 @@ int main_disp_to_heights(int c, char *v[])
 
 	    double posx = list_pairs.data[pid].dispx[posH];
 	    double posy = list_pairs.data[pid].dispy[posH];
-
+	     
 	    list_pairs.data[pid].q1[0] = posx;
 	    list_pairs.data[pid].q1[1] = posy;
 	    list_pairs.data[pid].q1[2] = 1.;
@@ -487,13 +400,8 @@ int main_disp_to_heights(int c, char *v[])
 	    else
 	      {
 		list_pairs.data[pid].process = true;
-    int mainsight = list_pairs.data[pid].ID, slavesight = list_pairs.data[pid].sight_slave;
-    size_t start[3] = {x, y, mainsight-1};
-    if ((retval = nc_put_vara_int(ncid, varids[VVIE_IND], start, stop, &mainsight)))
-      ERROR(0);
-    start[2] = slavesight-1;
-    if ((retval = nc_put_vara_int(ncid, varids[VVIE_IND], start, stop, &slavesight)))
-      ERROR(0);
+		s2pnc_write_view(&ncs2p_output, x, y, &list_pairs.data[pid].ID);
+		s2pnc_write_view(&ncs2p_output, x, y, &list_pairs.data[pid].sight_slave);
 	      }
 	  }
 
@@ -528,15 +436,15 @@ int main_disp_to_heights(int c, char *v[])
 				    &errMap_tab, sights_list,
 				    x, y, &list_pairs, &vertex_index);
 	      }
-
+		 
 	    // r.m.s. error
 	    sum = sqrt(sum/nb_elt);
-
+		  
 	    // Output the results in original geometry
-
+		  
 	    // * height
 	    heightMap[posH] = hg;
-
+		  
 	    // * ecef
 	    // - sights_list is a list of "type_sight" element (see c/rpc.h)
 	    // - err_vec_ptopt_to_sight is a field made up of a 6 double tab
@@ -544,7 +452,7 @@ int main_disp_to_heights(int c, char *v[])
 	    // - each sight is related to the optimal point, so we only need the first one.
 	    for(int t=0; t<3; t++)
 	      ecef[width*3*y+3*x+t] = sights_list[0].err_vec_ptopt_to_sight[t];
-
+	      
 	    // * r.m.s. error (dedicated to index 0)
 	    errMap_tab[0][posH] = sum;
 	    npoints ++;
@@ -554,8 +462,8 @@ int main_disp_to_heights(int c, char *v[])
 	      {
 		// positions
 		double X[3];
-		ECEF_to_lgt_lat_alt(ecef[width*3*y+3*x],
-				    ecef[width*3*y+3*x+1],
+		ECEF_to_lgt_lat_alt(ecef[width*3*y+3*x], 
+				    ecef[width*3*y+3*x+1], 
 				    ecef[width*3*y+3*x+2],
 				    &X[0],&X[1],&X[2]);
 
@@ -581,9 +489,9 @@ int main_disp_to_heights(int c, char *v[])
        fprintf(stderr, "Can't open this file: %s\n", v[1]);
        return 1;
      }
-
+   
    for (int y = 0; y < height; y++)
-     for (int x = 0; x < width; x++)
+     for (int x = 0; x < width; x++) 
        {
 	 int pix = y*width + x;
 
@@ -592,12 +500,12 @@ int main_disp_to_heights(int c, char *v[])
 	   if (isnan(ecef[width*3*y+3*x+t]))
 	     ok=false;
 
-	 if (ok)
+	 if (ok) 
 	   {
 	     // positions
 	     double X[3];
-	     ECEF_to_lgt_lat_alt(ecef[width*3*y+3*x],
-				 ecef[width*3*y+3*x+1],
+	     ECEF_to_lgt_lat_alt(ecef[width*3*y+3*x], 
+				 ecef[width*3*y+3*x+1], 
 				 ecef[width*3*y+3*x+2],
 				 &X[0],&X[1],&X[2]);
 
@@ -607,22 +515,14 @@ int main_disp_to_heights(int c, char *v[])
 
 	     // convert (lon, lat, alt) to utm
 	     utm_alt_zone(X, X[1], X[0], zone);
-
+	       
 	     // colorization: if greyscale, copy the grey level on each channel
 	     uint8_t rgb[3];
 	     if (clr) {
 	       for (int k = 0; k < pd; k++) rgb[k] = clr[k + pd*pix];
 	       for (int k = pd; k < 3; k++) rgb[k] = rgb[k-1];
 	     }
-
-       size_t start[2] = {x, y};
-       if ((retval = nc_put_vara_double(ncid, varids[VLON_IND], start, stop, &X[0])))
-         ERROR(0);
-       if ((retval = nc_put_vara_double(ncid, varids[VLAT_IND], start, stop, &X[1])))
-         ERROR(0);
-       if ((retval = nc_put_vara_double(ncid, varids[VALT_IND], start, stop, &X[2])))
-         ERROR(0);
-
+	       
 	     // write to ply
 	     if (ascii) {
 	       fprintf(ply_file, "%a %a %a ", X[0], X[1], X[2]);
@@ -635,9 +535,10 @@ int main_disp_to_heights(int c, char *v[])
 	       if (clr) {
 		 unsigned char C[3] = {rgb[0], rgb[1], rgb[2]};
 		 fwrite(rgb, sizeof(unsigned char), 3, ply_file);
-	       }
+	       }		 
 	     }
-	   }
+	   s2pnc_write_position(&ncs2p_output, x, y, &X[0], &X[1], &X[2]);
+	   }  
        }
 
    // * save images
@@ -649,7 +550,7 @@ int main_disp_to_heights(int c, char *v[])
 
    sprintf(buf,"%s/rpc_err_rms_allsights.tif",tile_dir);
    iio_save_image_float(buf, errMap_tab[0], width, height);
-
+  
    for(int i=1;i<size_of_fout_err_tab;i++)
      {
        sprintf(buf,"%s/rpc_err_norm_sight_%d.tif",tile_dir,i);
@@ -671,15 +572,12 @@ int main_disp_to_heights(int c, char *v[])
      {
        free(list_pairs.data[i].dispx);
      }
-   free(list_pairs.data);
+   free(list_pairs.data);  
 
    for(int i=0;i<size_of_fout_err_tab;i++)
      free(errMap_tab[i]);
    if (size_of_fout_err_tab > 1)
      free(errMap_tab);
-
-  if ((retval = nc_close(ncid)))
-      ERROR(retval);
 
    return 0;
 }

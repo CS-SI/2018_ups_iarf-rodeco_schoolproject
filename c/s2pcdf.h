@@ -1,10 +1,6 @@
 #ifndef _S2P_CDF_H
 #define _S2P_CDF_H
 
-#include <netcdf.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 /* This is the name of the data file we will create. */
 #define FILE_NAME "/data.nc"
 
@@ -16,8 +12,8 @@
 /* indice position in the dimension table */
 #define DWID_NAME "width"
 #define DWID_IND 0
-#define DLEN_NAME "length"
-#define DLEN_IND 1
+#define DHEI_NAME "height"
+#define DHEI_IND 1
 #define DVIE_NAME "views"
 #define DVIE_IND 2
 /* variables are defined as VXXX_NAME for their name and VXXX_IND for the
@@ -36,6 +32,8 @@
 #define AROW_IND 0
 #define ACOL_NAME "column"
 #define ACOL_IND 1
+/* Error handling */
+#define ERROR(e) {printf("Error: %s\n", nc_strerror(e)); exit(2);}
 
 typedef struct {
   char* name;
@@ -44,12 +42,12 @@ typedef struct {
   int varids[NVARS];
 } ncfile;
 
-void s2pnc_init_netcdf_file(char* dir_file, ncfile* ncf,
+void s2pnc_init_netcdf_file(const char* dir_file, ncfile* ncf,
    int width, int length, int views, int row, int col);
 
-void s2pnc_write_view(ncfile* ncf, int viewId);
+void s2pnc_write_view(ncfile* ncf, int x, int y, int *viewId);
 
-void s2pnc_write_position(ncfile* ncf, int lon, int lat, int alt);
+void s2pnc_write_position(ncfile* ncf, int x, int y, double *lon, double *lat, double *alt);
 
 void s2pnc_close_netcdf_file(ncfile* ncf);
 

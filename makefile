@@ -146,6 +146,9 @@ $(SRCDIR)/iio.o: c/iio.c c/iio.h
 $(SRCDIR)/rpc.o: c/rpc.c c/xfopen.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(SRCDIR)/s2pcdf.o: c/s2pcdf.c c/s2pcdf.h
+	$(CC) $(CFLAGS) $(CDF_LIBS) -c $< -o $@
+
 $(BINDIR)/bin2asc: c/bin2asc.c
 	$(CC) $(CFLAGS) $^ -o $@
 
@@ -168,8 +171,8 @@ $(SRCDIR)/triangulation.o: c/triangulation.c c/triangulation.h
 $(SRCDIR)/coordconvert.o: c/coordconvert.c c/coordconvert.h
 	$(CC) $(CFLAGS) -c $< -lm -o $@
 
-$(BINDIR)/multidisp2ply: 3rdparty/iio/iio.o $(SRCDIR)/rpc.o $(SRCDIR)/geographiclib_wrapper.o $(SRCDIR)/triangulation.o $(SRCDIR)/coordconvert.o c/multidisp2ply.c c/vvector.h 3rdparty/iio/iio.h c/rpc.h c/triangulation.h c/coordconvert.h c/read_matrix.c
-	$(CC) $(CFLAGS) 3rdparty/iio/iio.o $(SRCDIR)/rpc.o $(SRCDIR)/geographiclib_wrapper.o $(SRCDIR)/triangulation.o $(SRCDIR)/coordconvert.o c/multidisp2ply.c $(IIOLIBS) $(CDF_LIBS) -lGeographic -o $@
+$(BINDIR)/multidisp2ply: 3rdparty/iio/iio.o $(SRCDIR)/rpc.o $(SRCDIR)/s2pcdf.o $(SRCDIR)/geographiclib_wrapper.o $(SRCDIR)/triangulation.o $(SRCDIR)/coordconvert.o c/multidisp2ply.c c/vvector.h 3rdparty/iio/iio.h c/rpc.h c/triangulation.h c/coordconvert.h c/read_matrix.c
+	$(CC) $(CFLAGS) 3rdparty/iio/iio.o $(SRCDIR)/rpc.o $(SRCDIR)/s2pcdf.o $(SRCDIR)/geographiclib_wrapper.o $(SRCDIR)/triangulation.o $(SRCDIR)/coordconvert.o c/multidisp2ply.c $(IIOLIBS) $(CDF_LIBS) -lGeographic -o $@
 
 $(BINDIR)/disp2ply: $(SRCDIR)/iio.o $(SRCDIR)/rpc.o $(SRCDIR)/geographiclib_wrapper.o c/disp2ply.c c/fail.c c/rpc.h c/read_matrix.c c/smapa.h
 	$(CC) $(CFLAGS) c/iio.o $(SRCDIR)/rpc.o $(SRCDIR)/geographiclib_wrapper.o c/disp2ply.c $(IIOLIBS) $(LDLIBS) -lGeographic -o $@
