@@ -14,7 +14,7 @@
 #define DWID_IND 0
 #define DHEI_NAME "height"
 #define DHEI_IND 1
-#define DVIE_NAME "views"
+#define DVIE_NAME "sight"
 #define DVIE_IND 2
 /* variables are defined as VXXX_NAME for their name and VXXX_IND for the
 /* indice position in the variable table */
@@ -24,17 +24,17 @@
 #define VLAT_IND 1
 #define VALT_NAME "altitude"
 #define VALT_IND 2
-#define VVIE_NAME "views"
+#define VVIE_NAME "selected_sights"
 #define VVIE_IND 3
-#define VSLX_NAME "slaveimagex"
-#define VSLX_IND 4
-#define VSLY_NAME "slaveimagey"
-#define VSLY_IND 5
+#define VSECWID_NAME "width_pos_secondary_image"
+#define VSECWID_IND 4
+#define VSECHEI_NAME "height_pos_secondary_image"
+#define VSECHEI_IND 5
 /* attribute associated with the vile are define as AXXX_NAME for their name and VXXX_ind
 /* for the indice in the attribute table */
-#define AROW_NAME "row"
+#define AROW_NAME "width_pos_complete_reference"
 #define AROW_IND 0
-#define ACOL_NAME "column"
+#define ACOL_NAME "height_pos_complete_reference"
 #define ACOL_IND 1
 /* Error handling */
 #define ERROR(e) {printf("Error: %s\n", nc_strerror(e)); exit(2);}

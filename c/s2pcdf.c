@@ -43,9 +43,9 @@ void s2pnc_init_netcdf_file(const char* dir_file,
     if ((retval = nc_def_var(*ncid, VVIE_NAME, NC_INT, NDIMS, dimids, &varids[VVIE_IND])))
     ERROR(retval);
 
-    if ((retval = nc_def_var(*ncid, VSLX_NAME, NC_INT, NDIMS, dimids, &varids[VSLX_IND])))
+    if ((retval = nc_def_var(*ncid, VSECWID_NAME, NC_INT, NDIMS, dimids, &varids[VSECWID_IND])))
     ERROR(retval);
-    if ((retval = nc_def_var(*ncid, VSLY_NAME, NC_INT, NDIMS, dimids, &varids[VSLY_IND])))
+    if ((retval = nc_def_var(*ncid, VSECHEI_NAME, NC_INT, NDIMS, dimids, &varids[VSECHEI_IND])))
     ERROR(retval);
 
     if ((retval = nc_put_att(*ncid, NC_GLOBAL, AROW_NAME, NC_INT, 1, &row)))
@@ -84,9 +84,9 @@ void s2pnc_init_netcdf_file(const char* dir_file,
         int *ncid = &(ncf->ncid), *varids = ncf->varids, *dimids = ncf->dimids;
         size_t start[3] = {x, y, (viewId)-1}, stop[3] = {1, 1, 1};
 
-        if ((retval = nc_put_vara_double(*ncid, varids[VSLX_IND], start, stop, imx)))
+        if ((retval = nc_put_vara_double(*ncid, varids[VSECWID_IND], start, stop, imx)))
           ERROR(0);
-        if ((retval = nc_put_vara_double(*ncid, varids[VSLY_IND], start, stop, imy)))
+        if ((retval = nc_put_vara_double(*ncid, varids[VSECHEI_IND], start, stop, imy)))
           ERROR(0);
 
       }
