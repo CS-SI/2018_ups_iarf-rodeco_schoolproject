@@ -509,7 +509,9 @@ int main_disp_to_heights(int c, char *v[])
 				 ecef[width*3*y+3*x+1],
 				 ecef[width*3*y+3*x+2],
 				 &X[0],&X[1],&X[2]);
-
+        
+      s2pnc_write_position(&ncs2p_output, x, y, &X[0], &X[1], &X[2]);
+        
 	     // check with lon/lat bounding box
 	     if (X[0] < lon_m || X[0] > lon_M || X[1] < lat_m || X[1] > lat_M)
 	       continue;
@@ -538,7 +540,7 @@ int main_disp_to_heights(int c, char *v[])
 		 fwrite(rgb, sizeof(unsigned char), 3, ply_file);
 	       }
 	     }
-	   s2pnc_write_position(&ncs2p_output, x, y, &X[0], &X[1], &X[2]);
+
 	   }
        }
 
