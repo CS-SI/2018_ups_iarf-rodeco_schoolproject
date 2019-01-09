@@ -47,6 +47,13 @@ void s2pnc_init_netcdf_file(const char* dir_file,
     ERROR(retval);
     if ((retval = nc_def_var(*ncid, VSECLEN_NAME, NC_INT, NDIMS, dimids, &varids[VSECLEN_IND])))
     ERROR(retval);
+    
+    if ((retval = nc_def_var(*ncid, VLONSIGHT_NAME, NC_DOUBLE, NDIMS, dimids, &varids[VLONSIGHT_IND])))
+    ERROR(retval);
+    if ((retval = nc_def_var(*ncid, VLATSIGHT_NAME, NC_DOUBLE, NDIMS, dimids, &varids[VLATSIGHT_IND])))
+    ERROR(retval);
+    if ((retval = nc_def_var(*ncid, VALTSIGHT_NAME, NC_DOUBLE, NDIMS, dimids, &varids[VALTSIGHT_IND])))
+    ERROR(retval);
 
     if ((retval = nc_put_att(*ncid, NC_GLOBAL, AROW_NAME, NC_INT, 1, &row)))
     ERROR(retval);
@@ -67,6 +74,24 @@ void s2pnc_write_view(ncfile* ncf,
   size_t start[3] = {row, column, (*viewId)-1}, stop[3] = {1, 1, 1};
   
   if ((retval = nc_put_vara_int(*ncid, varids[VVIE_IND], start, stop, viewId)))
+  ERROR(0);
+}
+
+void s2pnc_write_sigths_direction(ncfile* ncf,
+  int row,
+  int column,
+  int viewId,
+  double direction[3])
+{
+  int retval;
+  int *ncid = &(ncf->ncid), *varids = ncf->varids, *dimids = ncf->dimids;
+  size_t start[3] = {row, column, viewId-1}, stop[3] = {1, 1, 1};
+  
+  if ((retval = nc_put_vara_double(*ncid, varids[VLONSIGHT_IND], start, stop, &direction[0])))
+  ERROR(0);
+  if ((retval = nc_put_vara_double(*ncid, varids[VLATSIGHT_IND], start, stop, &direction[1])))
+  ERROR(0);
+  if ((retval = nc_put_vara_double(*ncid, varids[VALTSIGHT_IND], start, stop, &direction[2])))
   ERROR(0);
 }
 

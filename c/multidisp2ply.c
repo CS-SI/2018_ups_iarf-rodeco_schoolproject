@@ -377,7 +377,7 @@ int main_disp_to_heights(int c, char *v[])
       {
 	int local_nb_sights = N_pair+1;
 	int posH = x + width*y;
-
+  
 	// for each pair (pid == pair id)
 	for(int pid=0;pid<list_pairs.real_size;pid++)
 	  {
@@ -399,8 +399,9 @@ int main_disp_to_heights(int c, char *v[])
 	      }
 	    else
 	      {
+    int slave_id = list_pairs.data[pid].sight_slave;
 		list_pairs.data[pid].process = true;
-    s2pnc_write_slave_coordinate(&ncs2p_output, x, y, list_pairs.data[pid].sight_slave, &(list_pairs.data[pid].q1[0]), &(list_pairs.data[pid].q1[1]));
+    s2pnc_write_slave_coordinate(&ncs2p_output, x, y, slave_id, &(list_pairs.data[pid].q1[0]), &(list_pairs.data[pid].q1[1]));
 	      }
 	  }
 
@@ -424,8 +425,12 @@ int main_disp_to_heights(int c, char *v[])
 	    for(int s=0; s<local_nb_sights; s++)
 	      {
     type_sight *sight = &sights_list[s];
+    double V[3] = {sight->v[0], sight->v[1], sight->v[2]};
+    int id = sight->ID;
 		sum += pow(sight->err, 2.0);
-    s2pnc_write_view(&ncs2p_output, x, y, &sight->ID);
+		
+    s2pnc_write_view(&ncs2p_output, x, y, &id);
+    s2pnc_write_sigths_direction(&ncs2p_output, x, y, id, V);
 		nb_elt++;
 	      }
 

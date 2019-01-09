@@ -6,7 +6,7 @@
 
 /* Setting dimension of 2D grid of image width x length */
 #define NDIMS 3
-#define NVARS 6
+#define NVARS 9
 #define NATRS 2
 /* Dimensions are defined as DXXX_NAME for their name and DXXX_IND for the
 /* indice position in the dimension table */
@@ -30,6 +30,13 @@
 #define VSECLEN_IND 4
 #define VSECHEI_NAME "height_pos_secondary_image"
 #define VSECHEI_IND 5
+#define VLONSIGHT_NAME "sight_ecefx_direction"
+#define VLONSIGHT_IND 6
+#define VLATSIGHT_NAME "sight_ecefy_direction"
+#define VLATSIGHT_IND 7
+#define VALTSIGHT_NAME "sight_ecefz_direction"
+#define VALTSIGHT_IND 8
+
 /* attribute associated with the vile are define as AXXX_NAME for their name and VXXX_ind
 /* for the indice in the attribute table */
 #define ACOL_NAME "length_pos_complete_reference"
@@ -59,6 +66,12 @@ void s2pnc_write_view(ncfile* ncf,
   int row,
   int column,
   int *viewId);
+
+void s2pnc_write_sigths_direction(ncfile* ncf,
+  int row,
+  int column,
+  int viewId,
+  double direction[3]);
 
 void s2pnc_write_slave_coordinate(ncfile* ncf,
   int row,
