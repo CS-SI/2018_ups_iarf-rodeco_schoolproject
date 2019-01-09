@@ -10,8 +10,8 @@
 #define NATRS 2
 /* Dimensions are defined as DXXX_NAME for their name and DXXX_IND for the
 /* indice position in the dimension table */
-#define DWID_NAME "width"
-#define DWID_IND 0
+#define DLEN_NAME "length"
+#define DLEN_IND 0
 #define DHEI_NAME "height"
 #define DHEI_IND 1
 #define DVIE_NAME "sight"
@@ -26,16 +26,17 @@
 #define VALT_IND 2
 #define VVIE_NAME "selected_sights"
 #define VVIE_IND 3
-#define VSECWID_NAME "width_pos_secondary_image"
-#define VSECWID_IND 4
+#define VSECLEN_NAME "length_pos_secondary_image"
+#define VSECLEN_IND 4
 #define VSECHEI_NAME "height_pos_secondary_image"
 #define VSECHEI_IND 5
 /* attribute associated with the vile are define as AXXX_NAME for their name and VXXX_ind
 /* for the indice in the attribute table */
-#define AROW_NAME "width_pos_complete_reference"
-#define AROW_IND 0
-#define ACOL_NAME "height_pos_complete_reference"
-#define ACOL_IND 1
+#define ACOL_NAME "length_pos_complete_reference"
+#define ACOL_IND 0
+#define AROW_NAME "height_pos_complete_reference"
+#define AROW_IND 1
+
 /* Error handling */
 #define ERROR(e) {printf("Error: %s\n", nc_strerror(e)); exit(2);}
 
@@ -48,27 +49,27 @@ typedef struct {
 
 void s2pnc_init_netcdf_file(const char* dir_file,
    ncfile* ncf,
-   int width,
+   int height,
    int length,
    int views,
    int row,
-   int col);
+   int column);
 
 void s2pnc_write_view(ncfile* ncf,
-  int x,
-  int y,
+  int row,
+  int column,
   int *viewId);
 
 void s2pnc_write_slave_coordinate(ncfile* ncf,
-  int x,
-  int y,
+  int row,
+  int column,
   int viewId,
   double *imx,
   double *imy);
 
 void s2pnc_write_position(ncfile* ncf,
-  int x,
-  int y,
+  int row,
+  int column,
   double *lon,
   double *lat,
   double *alt);
