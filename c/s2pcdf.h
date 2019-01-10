@@ -10,7 +10,7 @@
 #define NATRS 2
 /* Dimensions are defined as DXXX_NAME for their name and DXXX_IND for the
 /* indice position in the dimension table */
-#define DLEN_NAME "length"
+#define DLEN_NAME "width"
 #define DLEN_IND 0
 #define DHEI_NAME "height"
 #define DHEI_IND 1
@@ -26,7 +26,7 @@
 #define VALT_IND 2
 #define VVIE_NAME "selected_sights"
 #define VVIE_IND 3
-#define VSECLEN_NAME "length_pos_secondary_image"
+#define VSECLEN_NAME "width_pos_secondary_image"
 #define VSECLEN_IND 4
 #define VSECHEI_NAME "height_pos_secondary_image"
 #define VSECHEI_IND 5
@@ -37,9 +37,9 @@
 #define VALTSIGHT_NAME "sight_ecefz_direction"
 #define VALTSIGHT_IND 8
 
-/* attribute associated with the vile are define as AXXX_NAME for their name and VXXX_ind
+/* attribute associated with the vile are define as AXXX_NAME for their name and AXXX_ind
 /* for the indice in the attribute table */
-#define ACOL_NAME "length_pos_complete_reference"
+#define ACOL_NAME "width_pos_complete_reference"
 #define ACOL_IND 0
 #define AROW_NAME "height_pos_complete_reference"
 #define AROW_IND 1
