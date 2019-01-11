@@ -5,23 +5,60 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/ply_io.h>
 
+#include <iostream>
+#include <sstream>
+
 int main(int argc, char const *argv[]) {
 
+  /* Declaration of reconstruction parameters */
+  std::stringstream i_file_name(argv[1]),
+    o_file_name("./");
+  o_file_name << argv[0];
+  o_file_name << ".ply";
+  std::stringstream boolreader(argv[2]);
+  std::string s;
+  float point_weight(atof(argv[9])),
+    scale(atof(argv[10])),
+    samples_per_node(atof(argv[11]));
+  int n_estimation(atoi(argv[3])),
+    depth(atoi(argv[4])),
+    min_depth(atoi(argv[5])),
+    solver_divide(atoi(argv[6])),
+    iso_divide(atoi(argv[7])),
+    degree (atoi(argv[8]));
+  bool ktree,
+    confidence,
+    output_polygon,
+    manifold;
+    
+  boolreader >> std::boolalpha >> ktree;
+  boolreader.str(argv[12]);
+  boolreader >> std::boolalpha >> confidence;
+  boolreader.str(argv[13]);
+  boolreader >> std::boolalpha >> output_polygon;
+  boolreader.str(argv[14]);
+  boolreader >> std::boolalpha >> manifold;
+  
+  s = i_file_name.str();
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr rgbCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-  printf("Reading %s\n", argv[1]);
-  pcl::io::loadPLYFile(argv[1], *rgbCloud);
+  printf("Reading %s\n", s.c_str());
+  pcl::io::loadPLYFile(s.c_str(), *rgbCloud);
   printf("Stop reading\n");
 
   /* Normal estimation */
   pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> normalEstimation;
   pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
-  //pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
-  //tree->setInputCloud(rgbCloud);
   normalEstimation.setViewPoint(0.0,0.0,60000.0);
   normalEstimation.setInputCloud(rgbCloud);
-  normalEstimation.setRadiusSearch(1);
-  //normalEstimation.setSearchMethod(tree);
-  //normalEstimation.setKSearch(80);
+  if (ktree) {
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+    tree->setInputCloud(rgbCloud);
+    normalEstimation.setSearchMethod(tree);
+    normalEstimation.setKSearch(n_estimation);
+  } else {
+    //normalEstimation.setInputCloud(rgbCloud);
+    normalEstimation.setRadiusSearch(n_estimation);
+  }
   printf("%s\n", "Estimation des normales");
   normalEstimation.compute(*normals);
 
@@ -38,12 +75,24 @@ int main(int argc, char const *argv[]) {
   std::vector<pcl::Vertices> polygons;
   pcl::PolygonMesh mesh;
 
-  printf("%s\n", "Reconstruction ");
-  poissonreconstruction.setDepth(9);
+  poissonreconstruction.setDepth(depth);
+  //poissonreconstruction.setMinDepth(min_depth);
+  //poissonreconstruction.setPointWeight(point_weight);
+  //poissonreconstruction.setScale(scale);
+  //poissonreconstruction.setSolverDivide(solver_divide);
+  //poissonreconstruction.setIsoDivide(iso_divide);
+  //poissonreconstruction.setSamplesPerNode(samples_per_node);
+  //poissonreconstruction.setConfidence(confidence);
+  //poissonreconstruction.setOutputPolygons(output_polygon);
+  //poissonreconstruction.setDegree(degree);
+  //poissonreconstruction.setManifold(manifold);
+
   poissonreconstruction.setInputCloud(rgbCloudwithNormals);
+  printf("%s\n", "Reconstruction ");
   poissonreconstruction.reconstruct(mesh);
 
-  pcl::io::savePLYFileBinary ("mesh.ply", mesh);
+  s = o_file_name.str();
+  pcl::io::savePLYFileBinary (s.c_str(), mesh);
 
   return 0;
 }
