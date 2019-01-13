@@ -12,9 +12,7 @@ int main(int argc, char const *argv[]) {
 
   /* Declaration of reconstruction parameters */
   std::stringstream i_file_name(argv[1]),
-    o_file_name("./");
-  o_file_name << argv[0];
-  o_file_name << ".ply";
+    o_file_name(argv[15]);
   std::stringstream boolreader(argv[2]);
   std::string s;
   float point_weight(atof(argv[9])),
@@ -30,7 +28,7 @@ int main(int argc, char const *argv[]) {
     confidence,
     output_polygon,
     manifold;
-    
+
   boolreader >> std::boolalpha >> ktree;
   boolreader.str(argv[12]);
   boolreader >> std::boolalpha >> confidence;
@@ -38,7 +36,7 @@ int main(int argc, char const *argv[]) {
   boolreader >> std::boolalpha >> output_polygon;
   boolreader.str(argv[14]);
   boolreader >> std::boolalpha >> manifold;
-  
+
   s = i_file_name.str();
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr rgbCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
   printf("Reading %s\n", s.c_str());
@@ -76,22 +74,23 @@ int main(int argc, char const *argv[]) {
   pcl::PolygonMesh mesh;
 
   poissonreconstruction.setDepth(depth);
-  //poissonreconstruction.setMinDepth(min_depth);
-  //poissonreconstruction.setPointWeight(point_weight);
-  //poissonreconstruction.setScale(scale);
-  //poissonreconstruction.setSolverDivide(solver_divide);
-  //poissonreconstruction.setIsoDivide(iso_divide);
-  //poissonreconstruction.setSamplesPerNode(samples_per_node);
-  //poissonreconstruction.setConfidence(confidence);
-  //poissonreconstruction.setOutputPolygons(output_polygon);
-  //poissonreconstruction.setDegree(degree);
-  //poissonreconstruction.setManifold(manifold);
+  poissonreconstruction.setMinDepth(min_depth);
+  poissonreconstruction.setPointWeight(point_weight);
+  poissonreconstruction.setScale(scale);
+  poissonreconstruction.setSolverDivide(solver_divide);
+  poissonreconstruction.setIsoDivide(iso_divide);
+  poissonreconstruction.setSamplesPerNode(samples_per_node);
+  poissonreconstruction.setConfidence(confidence);
+  poissonreconstruction.setOutputPolygons(output_polygon);
+  poissonreconstruction.setDegree(degree);
+  poissonreconstruction.setManifold(manifold);
 
   poissonreconstruction.setInputCloud(rgbCloudwithNormals);
   printf("%s\n", "Reconstruction ");
   poissonreconstruction.reconstruct(mesh);
 
   s = o_file_name.str();
+  printf("Ecriture dans %s\n", s.c_str());
   pcl::io::savePLYFileBinary (s.c_str(), mesh);
 
   return 0;

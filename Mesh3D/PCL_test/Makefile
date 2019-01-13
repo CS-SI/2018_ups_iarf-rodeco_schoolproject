@@ -18,7 +18,7 @@ build: |$(CMAKE_BUILD_DIRECTORY)
 clearall: clean clean-build
 
 clean:
-	cd $(CMAKE_BUILD_DIRECTORY) && $(MAKE) clean $(MAKEFLAGS)
+	rm -rf reconstructed  && cd $(CMAKE_BUILD_DIRECTORY) && $(MAKE) clean $(MAKEFLAGS)
 
 clean-build:
 	rm -rf $(CMAKE_BUILD_DIRECTORY)

@@ -1,0 +1,11 @@
+{
+  "in_ply" : "PointCloud/melbourne.ply",
+  "out_dir" : "../reconstructed",
+  "normalEstimation" : {
+    "useKtree" : true,
+    "KSearch" : 8
+  },
+  "poissonReconstruction" : {
+    "depth" : 5,
+  }
+}
