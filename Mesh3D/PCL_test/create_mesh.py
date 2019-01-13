@@ -15,6 +15,15 @@ def init_cfg(cfg_usr):
         print('No entry file')
         sys.exit(1)
 
+    if 'mu' not in cfg_usr['greedyTriangulation'] or \
+    'searchRadius' not in cfg_usr['greedyTriangulation']:
+        print('Minimum configuration for Greedy Projection Triangulation not set')
+        sys.exit(1)
+
+    if 'alpha' not in cfg_usr['concaveHull']:
+        print('Minimum configuration for Concave Hull not set')
+        sys.exit(1)
+
     for key in cfg_usr.keys():
         if (cfg.__contains__(key)):
             if isinstance(cfg[key],dict):
@@ -28,16 +37,33 @@ def init_cfg(cfg_usr):
         os.mkdir(cfg['out_dir'])
 
 
+def launch_command(args):
+    print('Launching {}\n'.format(args[0]))
+    retval = subprocess.call(args)
+    if retval != 0:
+        print('ERROR : {} encountered an error, code {}\n'.format(args[0],retval))
+    else:
+        print('\n{} completed the reconstruction\n'.format(args[0]))
+
+
 def launch_reconstruction(cfg_usr):
 
     init_cfg(cfg_usr)
 
+    args = load_params.argument_greedy()
+    #launch_command(args)
+
     args = load_params.argument_poisson()
+    #launch_command(args)
 
-    retval = subprocess.call(args)
-    if retval != 0:
-        print('ERROR : {} encountered an error, code {}'.format(args[0],retval))
+    args = load_params.argument_concave()
+    #launch_command(args)
 
+    args = load_params.argument_convex()
+    #launch_command(args)
+
+    args = load_params.argument_organizedfastmesh()
+    launch_command(args)
 
 def read_cfg(cfg_file):
     with open(cfg_file, 'r') as f:

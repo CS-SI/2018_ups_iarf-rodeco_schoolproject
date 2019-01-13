@@ -12,29 +12,29 @@ int main(int argc, char const *argv[]) {
 
   /* Declaration of reconstruction parameters */
   std::stringstream i_file_name(argv[1]),
-    o_file_name(argv[15]);
-  std::stringstream boolreader(argv[2]);
+    o_file_name(argv[2]);
+  std::stringstream boolreader(argv[3]);
   std::string s;
-  float point_weight(atof(argv[9])),
-    scale(atof(argv[10])),
-    samples_per_node(atof(argv[11]));
-  int n_estimation(atoi(argv[3])),
-    depth(atoi(argv[4])),
-    min_depth(atoi(argv[5])),
-    solver_divide(atoi(argv[6])),
-    iso_divide(atoi(argv[7])),
-    degree (atoi(argv[8]));
+  float point_weight(atof(argv[10])),
+    scale(atof(argv[11])),
+    samples_per_node(atof(argv[12]));
+  int n_estimation(atoi(argv[4])),
+    depth(atoi(argv[5])),
+    min_depth(atoi(argv[6])),
+    solver_divide(atoi(argv[7])),
+    iso_divide(atoi(argv[8])),
+    degree (atoi(argv[9]));
   bool ktree,
     confidence,
     output_polygon,
     manifold;
 
   boolreader >> std::boolalpha >> ktree;
-  boolreader.str(argv[12]);
-  boolreader >> std::boolalpha >> confidence;
   boolreader.str(argv[13]);
-  boolreader >> std::boolalpha >> output_polygon;
+  boolreader >> std::boolalpha >> confidence;
   boolreader.str(argv[14]);
+  boolreader >> std::boolalpha >> output_polygon;
+  boolreader.str(argv[15]);
   boolreader >> std::boolalpha >> manifold;
 
   s = i_file_name.str();
@@ -63,14 +63,14 @@ int main(int argc, char const *argv[]) {
   /* Concatenation of XYZRGB with normals */
   pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr rgbCloudwithNormals(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
   pcl::concatenateFields(*rgbCloud, *normals, *rgbCloudwithNormals);
+  //* cloud_with_normals = rgbCloud + normals
 
   /* Create search tree */
-  //pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree2(new pcl::search::KdTree<pcl::PointXYZRGB>);
-  //tree2->setInputCloud(rgbCloudwithNormals);
+  pcl::search::KdTree<pcl::PointXYZRGBNormal>::Ptr tree2(new pcl::search::KdTree<pcl::PointXYZRGBNormal>);
+  tree2->setInputCloud(rgbCloudwithNormals);
 
   /* Initialize objects */
   pcl::Poisson<pcl::PointXYZRGBNormal> poissonreconstruction;
-  std::vector<pcl::Vertices> polygons;
   pcl::PolygonMesh mesh;
 
   poissonreconstruction.setDepth(depth);
@@ -86,6 +86,7 @@ int main(int argc, char const *argv[]) {
   poissonreconstruction.setManifold(manifold);
 
   poissonreconstruction.setInputCloud(rgbCloudwithNormals);
+  poissonreconstruction.setSearchMethod (tree2);
   printf("%s\n", "Reconstruction ");
   poissonreconstruction.reconstruct(mesh);
 

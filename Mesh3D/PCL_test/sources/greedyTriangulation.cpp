@@ -9,72 +9,86 @@
 
 int main (int argc, char** argv)
 {
-  if (argc > 3 || argc < 0){
-    printf("%s%s%s\n", "Usage : ", argv[0]," [radius]");
-    exit(1);
-  }
+  /* Declaration of reconstruction parameters */
+  std::stringstream i_file_name(argv[1]),
+    o_file_name(argv[2]);
+  std::stringstream boolreader(argv[3]);
+  std::string s;
+  double mu(atof(argv[5])),
+    search_radius(atof(argv[7])),
+    minimum_angle(atof(argv[8])),
+    maximum_angle(atof(argv[9])),
+    maximum_surface_angle(atof(argv[10]));
+  int n_estimation(atoi(argv[4])),
+    maximum_nearest_neighbors(atoi(argv[6]));
+  bool ktree,
+    normal_consistency,
+    consistent_vertex_ordering;
+
+  boolreader >> std::boolalpha >> ktree;
+  boolreader.str(argv[11]);
+  boolreader >> std::boolalpha >> normal_consistency;
+  boolreader.str(argv[12]);
+  boolreader >> std::boolalpha >> consistent_vertex_ordering;
 
   // Load input file into a PointCloud<T> with an appropriate type
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-  pcl::PCLPointCloud2 cloud_blob;
-  pcl::PLYReader fileread;
-  printf("Reading %s\n", argv[1]);
-  pcl::io::loadPLYFile(argv[1], cloud_blob);
+  s = i_file_name.str();
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr rgbCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+  printf("Reading %s\n", s.c_str());
+  pcl::io::loadPLYFile(s.c_str(), *rgbCloud);
   printf("Stop reading\n");
-  pcl::fromPCLPointCloud2 (cloud_blob, *cloud);
   //* the data should be available in cloud
 
-  // Normal estimation*
-  pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> n;
-  pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud<pcl::Normal>);
-  pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
-  tree->setInputCloud (cloud);
-  n.setInputCloud (cloud);
-  n.setSearchMethod (tree);
-  n.setKSearch (80);
+  /* Normal estimation */
+  pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> normalEstimation;
+  pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
+  normalEstimation.setViewPoint(0.0,0.0,60000.0);
+  normalEstimation.setInputCloud(rgbCloud);
+  if (ktree) {
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+    tree->setInputCloud(rgbCloud);
+    normalEstimation.setSearchMethod(tree);
+    normalEstimation.setKSearch(n_estimation);
+  } else {
+    //normalEstimation.setInputCloud(rgbCloud);
+    normalEstimation.setRadiusSearch(n_estimation);
+  }
   printf("%s\n", "Estimation des normales");
-  n.compute (*normals);
+  normalEstimation.compute(*normals);
   //* normals should not contain the point normals + surface curvatures
 
-  // Concatenate the XYZ and normal fields*
-  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_with_normals (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-  pcl::concatenateFields (*cloud, *normals, *cloud_with_normals);
-  //* cloud_with_normals = cloud + normals
+  /* Concatenation of XYZRGB with normals */
+  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr rgbCloudwithNormals(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+  pcl::concatenateFields(*rgbCloud, *normals, *rgbCloudwithNormals);
+  //* cloud_with_normals = rgbCloud + normals
 
-  // Create search tree*
-  pcl::search::KdTree<pcl::PointXYZRGBNormal>::Ptr tree2 (new pcl::search::KdTree<pcl::PointXYZRGBNormal>);
-  tree2->setInputCloud (cloud_with_normals);
+  /* Create search tree */
+  pcl::search::KdTree<pcl::PointXYZRGBNormal>::Ptr tree2(new pcl::search::KdTree<pcl::PointXYZRGBNormal>);
+  tree2->setInputCloud(rgbCloudwithNormals);
 
   // Initialize objects
   pcl::GreedyProjectionTriangulation<pcl::PointXYZRGBNormal> gp3;
-  pcl::PolygonMesh triangles;
+  pcl::PolygonMesh mesh;
 
-  // Set the maximum distance between connected points (maximum edge length)
-  double radius(atof(argv[2]));
-
-  printf("%s%f\n", "Recherche dans le rayon : ", radius);
-  gp3.setSearchRadius(radius);
-
-  // Set typical values for the parameters
-  gp3.setMu (2.5);
-  gp3.setMaximumNearestNeighbors(1000);
-  gp3.setMaximumSurfaceAngle(2*M_PI); // 45 degrees
-  gp3.setMinimumAngle(0); // 10 degrees
-  gp3.setMaximumAngle(2*M_PI); // 120 degrees
-  gp3.setNormalConsistency(false);
+  // Set values for the parameters
+  gp3.setMu(mu);
+  gp3.setMaximumNearestNeighbors(maximum_nearest_neighbors);
+  gp3.setSearchRadius(search_radius);
+  gp3.setMaximumAngle(maximum_angle);
+  gp3.setMaximumSurfaceAngle(maximum_surface_angle);
+  gp3.setMinimumAngle(minimum_angle);
+  gp3.setNormalConsistency(normal_consistency);
+  gp3.setConsistentVertexOrdering(consistent_vertex_ordering);
 
   // Get result
-  gp3.setInputCloud (cloud_with_normals);
-  gp3.setSearchMethod (tree2);
+  gp3.setInputCloud(rgbCloudwithNormals);
+  gp3.setSearchMethod(tree2);
   printf("%s\n", "Reconstruction ");
-  gp3.reconstruct (triangles);
+  gp3.reconstruct (mesh);
 
-  // Additional vertex information
-  std::vector<int> parts = gp3.getPartIDs();
-  std::vector<int> states = gp3.getPointStates();
-
-  printf("%s\n", "Sauvegarde");
-  pcl::io::savePLYFileBinary ("mesh.ply", triangles);
+  s = o_file_name.str();
+  printf("Ecriture dans %s\n", s.c_str());
+  pcl::io::savePLYFileBinary (s.c_str(), mesh);
 
   // Finish
   return (0);

@@ -16,7 +16,7 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 # Source file of project
-SET(EXECUTABLES greedyTriangulation poissonReconstruction organizedFastMesh marchingCubesRBF)
+SET(EXECUTABLES greedyTriangulation poissonReconstruction concaveHull convexHull organizedFastMesh)
 
 # Create libraries and executables
 

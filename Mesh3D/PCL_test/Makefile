@@ -17,8 +17,14 @@ build: |$(CMAKE_BUILD_DIRECTORY)
 
 clearall: clean clean-build
 
-clean:
-	rm -rf reconstructed  && cd $(CMAKE_BUILD_DIRECTORY) && $(MAKE) clean $(MAKEFLAGS)
+clean-exec:
+	cd $(CMAKE_BUILD_DIRECTORY) && $(MAKE) clean $(MAKEFLAGS)
+
+clean-pyc:
+	cd meshpylib && rm -f *.pyc
+
+clean: clean-exec clean-pyc
+	rm -rf reconstructed
 
 clean-build:
 	rm -rf $(CMAKE_BUILD_DIRECTORY)

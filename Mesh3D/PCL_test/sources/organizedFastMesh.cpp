@@ -1,49 +1,45 @@
 #include <pcl/features/normal_3d.h>
 #include <pcl/surface/organized_fast_mesh.h>
+#include <pcl/surface/reconstruction.h>
 #include <pcl/search/kdtree.h>
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/ply_io.h>
 
+#include <iostream>
+#include <sstream>
+
 int main(int argc, char const *argv[]) {
 
+  /* Declaration of reconstruction parameters */
+  std::stringstream i_file_name(argv[1]),
+    o_file_name(argv[2]);
+  std::string s;
+
+  s = i_file_name.str();
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr rgbCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-  printf("Reading %s\n", argv[1]);
-  pcl::io::loadPLYFile(argv[1], *rgbCloud);
+  printf("Reading %s\n", s.c_str());
+  pcl::io::loadPLYFile(s.c_str(), *rgbCloud);
   printf("Stop reading\n");
 
-  /* Normal estimation */
-  /*pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> normalEstimation;
-  pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
-  pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
-  tree->setInputCloud(rgbCloud);
-  normalEstimation.setInputCloud(rgbCloud);
-  normalEstimation.setSearchMethod(tree);
-  normalEstimation.setKSearch(80);
-  printf("%s\n", "Estimation des normales");
-  normalEstimation.compute(*normals);
-
-  /* Concatenation of XYZRGB with normals */
-  /*pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr rgbCloudwithNormals(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-  pcl::concatenateFields(*rgbCloud, *normals, *rgbCloudwithNormals);
-
   /* Create search tree */
-  //pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree2(new pcl::search::KdTree<pcl::PointXYZRGB>);
-  //tree2->setInputCloud(rgbCloudwithNormals);
+  pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree2(new pcl::search::KdTree<pcl::PointXYZRGB>);
+  tree2->setInputCloud(rgbCloud);
 
   /* Initialize objects */
   pcl::OrganizedFastMesh<pcl::PointXYZRGB> organizedFastMesh;
-  std::vector<pcl::Vertices> polygons;
   pcl::PolygonMesh mesh;
 
-  printf("%s\n", "Reconstruction ");
+  /* Initialize reconstruction parameters */
+
   organizedFastMesh.setInputCloud(rgbCloud);
-  organizedFastMesh.setTrianglePixelSize(40);
-  organizedFastMesh.storeShadowedFaces(true);
-  //organizedFastMesh.setTriangulationType(TRIANGLE_RIGHT_CUT);
+  organizedFastMesh.setSearchMethod (tree2);
+  printf("%s\n", "Reconstruction ");
   organizedFastMesh.reconstruct(mesh);
 
-  pcl::io::savePLYFileBinary ("mesh.ply", mesh);
+  s = o_file_name.str();
+  printf("Ecriture dans %s\n", s.c_str());
+  pcl::io::savePLYFileBinary (s.c_str(), mesh);
 
   return 0;
 }

@@ -1,3 +1,5 @@
+import math
+
 cfg = {}
 
 cfg['out_dir'] = "../reconstructed"
@@ -20,3 +22,19 @@ cfg['poissonReconstruction']['samplePerNode'] = 1.0
 cfg['poissonReconstruction']['confidence'] = False
 cfg['poissonReconstruction']['outputPolygon'] = False
 cfg['poissonReconstruction']['manifold'] = False
+
+cfg['greedyTriangulation'] = {}
+cfg['greedyTriangulation']['maximumNearestNeighbors'] = 100;
+cfg['greedyTriangulation']['maximumAngle'] = (2 * math.pi) / 3;
+cfg['greedyTriangulation']['maximumSurfaceAngle'] = (math.pi / 4);
+cfg['greedyTriangulation']['minimumAngle'] = math.pi/18;
+cfg['greedyTriangulation']['normalConsistency'] = False;
+cfg['greedyTriangulation']['consistentVertexOrdering'] = False;
+
+cfg['concaveHull'] = {}
+cfg['concaveHull']['keepInformation'] = False
+
+cfg['convexHull'] = {}
+cfg['convexHull']['computeAreaVolume'] = False
+
+cfg['organizedFastMesh'] = {}
