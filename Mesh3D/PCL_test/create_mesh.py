@@ -50,17 +50,20 @@ def launch_reconstruction(cfg_usr):
 
     init_cfg(cfg_usr)
 
+    args = load_params.argument_normal()
+    launch_command(args)
+
     args = load_params.argument_greedy()
-    #launch_command(args)
+    launch_command(args)
 
     args = load_params.argument_poisson()
-    #launch_command(args)
+    launch_command(args)
 
     args = load_params.argument_concave()
-    #launch_command(args)
+    launch_command(args)
 
     args = load_params.argument_convex()
-    #launch_command(args)
+    launch_command(args)
 
     args = load_params.argument_organizedfastmesh()
     launch_command(args)

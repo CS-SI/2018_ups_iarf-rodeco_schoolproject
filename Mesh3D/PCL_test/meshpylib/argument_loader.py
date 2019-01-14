@@ -8,10 +8,23 @@ def argument_mininit(name):
 
     return args
 
+def argument_norminit(name):
+    args = ['./{}'.format(name)]
 
-def argument_initwithnormal(name):
-    args = argument_mininit(name)
+    args += ['{}/normalEstimation.ply'.format(cfg['out_dir'])]
+    args += ['{}/{}.ply'.format(cfg['out_dir'], name)]
 
+    return args
+
+
+def argument_normal():
+    name = 'normalEstimation'
+    args = ['./{}'.format(name)]
+
+    args += [cfg['in_ply']]
+    args += ['{}/{}.ply'.format(cfg['out_dir'], name)]
+
+    reconsArgs = cfg[name]
     args += [str(cfg['normalEstimation']['useKtree'])]
     args += [str(cfg['normalEstimation']['KSearch'])]
 
@@ -20,7 +33,7 @@ def argument_initwithnormal(name):
 
 def argument_greedy():
     name = 'greedyTriangulation'
-    args = argument_initwithnormal(name)
+    args = argument_norminit(name)
 
     reconsArgs = cfg[name]
     args += [str(reconsArgs['mu'])]
@@ -37,7 +50,7 @@ def argument_greedy():
 
 def argument_poisson():
     name = 'poissonReconstruction'
-    args = argument_initwithnormal(name)
+    args = argument_norminit(name)
 
     reconsArgs = cfg[name]
     args += [str(reconsArgs['depth'])]
@@ -56,7 +69,7 @@ def argument_poisson():
 
 def argument_concave():
     name = 'concaveHull'
-    args = argument_initwithnormal(name)
+    args = argument_norminit(name)
 
     reconsArgs = cfg[name]
     args += [str(reconsArgs['alpha'])]
@@ -66,7 +79,7 @@ def argument_concave():
 
 def argument_convex():
     name = 'convexHull'
-    args = argument_initwithnormal(name)
+    args = argument_norminit(name)
 
     reconsArgs = cfg[name]
     args += [str(reconsArgs['computeAreaVolume'])]
