@@ -29,6 +29,9 @@ int main (int argc, char** argv)
   boolreader.str(argv[10]);
   boolreader >> std::boolalpha >> consistent_vertex_ordering;
 
+  for (int i = 0; i < argc; i++) {
+    printf("%s ", argv[i]);
+  }printf("\n");
   // Load input file into a PointCloud<T> with an appropriate type
   s = i_file_name.str();
   pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr rgbCloudwithNormals(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
