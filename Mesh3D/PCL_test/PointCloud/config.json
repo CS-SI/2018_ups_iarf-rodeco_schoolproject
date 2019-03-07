@@ -1,0 +1,18 @@
+{
+  "in_ply" : "PointCloud/melbourne.ply",
+  "out_dir" : "../reconstructed",
+  "normalEstimation" : {
+    "useKtree" : true,
+    "KSearch" : 8
+  },
+  "poissonReconstruction" : {
+    "depth" : 5
+  },
+  "greedyTriangulation" : {
+    "mu" : 4.0,
+    "searchRadius" : 1.0,
+  },
+  "concaveHull" : {
+    "alpha" : 0.0
+  }
+}
