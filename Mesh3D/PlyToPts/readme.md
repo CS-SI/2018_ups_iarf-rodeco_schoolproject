@@ -34,7 +34,7 @@ To clean up, run:
 $ make clean
 ```
 
-#Running the programs
+## Running the programs
 
 in the ply to pts directory build run : 
 
