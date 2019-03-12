@@ -12,7 +12,7 @@ Amenta, Choi and Kolluri, The power crust, unions of balls, and the medial axis 
 The original implementation of Power Crust uses the .pts File Format, but our and most common algorithm render the output as .ply File Format.
 this script converts the .ply File Format  to.pts in order to perform the 3D reconstruction.
 
-# Building the programs
+## Building the programs
 
 In the ply to pts directory run:
 
