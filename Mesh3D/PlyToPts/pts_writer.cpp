@@ -19,7 +19,7 @@ int main(int argc , char ** argv)
 	}
 	for (auto i: *cloud)
 	 {
-		ptsFile << i.x << " " << i.y<< " " << i.z << endl;
+		ptsFile << i.x - cloud->points[0].x<< " " << i.y -cloud->points[0].y<< " " << i.z -cloud->points[0].z<< endl;
 	}
 	ptsFile.close();
 	return 0;
