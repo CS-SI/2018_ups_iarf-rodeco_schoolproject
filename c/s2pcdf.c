@@ -16,7 +16,6 @@ void s2pnc_init_netcdf_file(const char* dir_file,
     char* file_name =  malloc(strlen(dir_file)+strlen(FILE_NAME)+1);
     strcpy(file_name,dir_file);
     strcat(file_name, FILE_NAME);
-    printf("%s",file_name);
     ncf->name = file_name;
 
     int *ncid = &(ncf->ncid), *dimids = ncf->dimids, *varids = ncf->varids;
@@ -47,7 +46,7 @@ void s2pnc_init_netcdf_file(const char* dir_file,
     ERROR(retval);
     if ((retval = nc_def_var(*ncid, VSECLEN_NAME, NC_INT, NDIMS, dimids, &varids[VSECLEN_IND])))
     ERROR(retval);
-    
+
     if ((retval = nc_def_var(*ncid, VLONSIGHT_NAME, NC_DOUBLE, NDIMS, dimids, &varids[VLONSIGHT_IND])))
     ERROR(retval);
     if ((retval = nc_def_var(*ncid, VLATSIGHT_NAME, NC_DOUBLE, NDIMS, dimids, &varids[VLATSIGHT_IND])))
@@ -72,7 +71,7 @@ void s2pnc_write_view(ncfile* ncf,
   int retval;
   int *ncid = &(ncf->ncid), *varids = ncf->varids, *dimids = ncf->dimids;
   size_t start[3] = {row, column, (*viewId)-1}, stop[3] = {1, 1, 1};
-  
+
   if ((retval = nc_put_vara_int(*ncid, varids[VVIE_IND], start, stop, viewId)))
   ERROR(0);
 }
@@ -86,7 +85,7 @@ void s2pnc_write_sigths_direction(ncfile* ncf,
   int retval;
   int *ncid = &(ncf->ncid), *varids = ncf->varids, *dimids = ncf->dimids;
   size_t start[3] = {row, column, viewId-1}, stop[3] = {1, 1, 1};
-  
+
   if ((retval = nc_put_vara_double(*ncid, varids[VLONSIGHT_IND], start, stop, &direction[0])))
   ERROR(0);
   if ((retval = nc_put_vara_double(*ncid, varids[VLATSIGHT_IND], start, stop, &direction[1])))
@@ -105,7 +104,7 @@ void s2pnc_write_slave_coordinate(ncfile* ncf,
   int retval;
   int *ncid = &(ncf->ncid), *varids = ncf->varids, *dimids = ncf->dimids;
   size_t start[3] = {row, column, (viewId)-1}, stop[3] = {1, 1, 1};
-  
+
   if ((retval = nc_put_vara_double(*ncid, varids[VSECHEI_IND], start, stop, imrow)))
     ERROR(0);
   if ((retval = nc_put_vara_double(*ncid, varids[VSECLEN_IND], start, stop, imcolumn)))
@@ -122,7 +121,7 @@ void s2pnc_write_position(ncfile* ncf,
   int retval;
   int *ncid = &(ncf->ncid), *varids = ncf->varids, *dimids = ncf->dimids;
   size_t start[2] = {row, column}, stop[2] = {1, 1};
-  
+
   if ((retval = nc_put_vara_double(*ncid, varids[VLON_IND], start, stop, lon)))
     ERROR(0);
   if ((retval = nc_put_vara_double(*ncid, varids[VLAT_IND], start, stop, lat)))
@@ -135,7 +134,7 @@ void s2pnc_close_netcdf_file(ncfile* ncf)
 {
   int retval, *ncid = &(ncf->ncid);
   free(ncf->name);
-  
+
   if ((retval = nc_close(*ncid)))
     ERROR(retval);
 }

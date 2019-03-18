@@ -540,7 +540,7 @@ def heights_to_ply(tile):
     else:
         common.image_qauto(common.image_crop_gdal(cfg['images'][0]['img'], x, y,
                                                  w, h), colors)
-        
+
     triangulation.height_map_to_point_cloud(plyfile, height_map,
                                             cfg['images'][0]['rpc'], H, colors,
                                             utm_zone=cfg['utm_zone'],
@@ -602,7 +602,7 @@ def plys_to_dsm(tile):
         raise common.RunFailure({"command": run_cmd, "environment": os.environ,
                                  "output": q})
 
-    # export confidence (optional) 
+    # export confidence (optional)
     # call to plyflatten might fail, but it won't abort the process
     # or affect the following steps
     cmd = ['plyflatten', str(cfg['dsm_resolution']), out_conf]
@@ -673,13 +673,13 @@ def global_dsm(tiles):
     input_file_list = os.path.join(cfg['out_dir'], 'gdalbuildvrt_input_file_list2.txt')
 
     if len(dems_list_ok) > 0:
-    
+
         with open(input_file_list, 'w') as f:
             f.write(dsms)
-    
+
         common.run("gdalbuildvrt -vrtnodata nan -input_file_list %s %s" % (input_file_list,
                                                                            out_conf_vrt))
-    
+
         common.run(" ".join(["gdal_translate",
                              "-co TILED=YES -co BIGTIFF=IF_SAFER",
                              "%s %s %s" % (projwin, out_conf_vrt, out_conf_tif)]))
@@ -785,6 +785,9 @@ def main(user_cfg, steps=ALL_STEPS):
         print('computing global DSM...')
         global_dsm(tiles)
         common.print_elapsed_time()
+
+    print('Sewing tiles')
+    common.run('python sewing_tiles.py {}'.format(cfg['out_dir']))
 
     # cleanup
     common.garbage_cleanup()
