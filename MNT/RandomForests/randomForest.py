@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Mar 20 11:30:19 2019
-
-@author: etudiant
+@author: Astrid Bourgois
 """
 
 from sklearn.ensemble import RandomForestClassifier
@@ -18,49 +16,36 @@ import math
 import argparse
 
 def veriteTerrain(input_dir):
+  sol = path.join(input_dir,'sol.tif')
+  building = path.join(input_dir,'building.tif')
 
-    in_folder = 'entree'
+  imageSol=TIFF.open(sol)
+  imgSol = imageSol.read_image()
 
-    sol = path.join(in_folder,'sol.tif')
-    building = path.join(in_folder,'building.tif')
-    
-    imageSol=TIFF.open(sol)
-    imgSol = imageSol.read_image()
-    
-    imageBuilding=TIFF.open(building)
-    imgBuilding = imageBuilding.read_image()
-    
-    print(imgSol.shape)
-    
-    veriteTerrain = imgBuilding
-    
-    for i in range (500):
-        for j in range (500) :
-            if imgSol[i,j] == 1 :
-                veriteTerrain[i,j] = 0
-            elif veriteTerrain[i,j] == 0 :
-                veriteTerrain[i,j] = float('NaN')
-            else:
-                veriteTerrain[i,j] = 1
-          
-    plt.imshow(veriteTerrain)
-    
-    return res
+  imageBuilding=TIFF.open(building)
+  imgBuilding = imageBuilding.read_image()
+
+  print(imgSol.shape)
+
+  veriteTerrain = imgBuilding
+
+  for i in range (500):
+    for j in range (500) :
+      if imgSol[i,j] == 1 :
+        veriteTerrain[i,j] = 0
+      elif veriteTerrain[i,j] == 0 :
+        veriteTerrain[i,j] = float('nan')
+
+  return veriteTerrain
 
 # Entrees :
 #	fileName : nom du fichier netCDF à ouvrir
 #	nb_zoom : nombre d'image de la pyramide de Gauss
-# Sortie : 
+# Sortie :
 #	Grad : tableau des gradients d'altitude des images de la pyramide de Gauss
-def preparation_donnees(input_dir, nb_zoom):
-	
-	#ouverture fichier netCDF
-	dataset = Dataset(path.join(input_dir,'data.nc')) 
+def preparation_donnees(altitudes, nb_zoom):
 
-	# recuperation des altitudes
-	altitudes = dataset.variables['altitude'][:,:]
-
-	#creation de la pyramide gaussienne 
+	#creation de la pyramide gaussienne
 	pyramid=tuple(pyramid_gaussian(altitudes,nb_zoom))
 
 	#calcul des gradients
@@ -77,19 +62,28 @@ parser.add_argument('nb_zoom')
 args = parser.parse_args()
 
 nb_zoom = int(args.nb_zoom)
-
 in_dir = args.input_dir
 
-g = preparation_donnees(in_dir, nb_zoom)
-groundTruth = veriteTerrain(in_dir)
+#ouverture fichier netCDF
+dataset = Dataset(path.join(in_dir,'data.nc'))
 
-train = g[0:(end/2)-1,:]#
-test = g[end/2:end,:]#
+# recuperation des altitudes
+altitudes = dataset.variables['altitude'][:,:]
 
-ytrain = groundTruth[0:(end/2)-1,:]#
-ytest = groundTruth[end/2:end,:]#
+y = veriteTerrain(in_dir)
+
+end = len(y[0])
+hend = end/2
+
+ytrain = y[:,:hend-1]#
+ytest = y[hend:end-1]#
+
+g = preparation_donnees(altitudes[:,:hend-1], nb_zoom)
+train = g
+g = preparation_donnees(altitudes[hend:end-1], nb_zoom)
+test = g
 
 clf = RandomForestClassifier(n_estimators=100, max_depth=2,random_state=0)
-clf.fit(train, yTrain)
+clf.fit(train, ytrain)
 
 clf.predict(test)
