@@ -4,6 +4,7 @@
 """
 
 from sklearn.ensemble import RandomForestClassifier
+from sklearn import metrics
 from skimage.transform import pyramid_gaussian
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,16 +26,14 @@ def veriteTerrain(input_dir):
   imageBuilding=TIFF.open(building)
   imgBuilding = imageBuilding.read_image()
 
-  print(imgSol.shape)
-
   veriteTerrain = imgBuilding
 
-  for i in range (500):
-    for j in range (500) :
+  for i in range (len(imgSol)):
+    for j in range (len(imgSol[0])) :
       if imgSol[i,j] == 1 :
         veriteTerrain[i,j] = 0
       elif veriteTerrain[i,j] == 0 :
-        veriteTerrain[i,j] = float('nan')
+        veriteTerrain[i,j] = 3
 
   return veriteTerrain
 
@@ -46,7 +45,7 @@ def veriteTerrain(input_dir):
 def preparation_donnees(altitudes, nb_zoom):
 
 	#creation de la pyramide gaussienne
-	pyramid=tuple(pyramid_gaussian(altitudes,nb_zoom))
+	pyramid= tuple(pyramid_gaussian(altitudes, nb_zoom))
 
 	#calcul des gradients
 	Grad = []
@@ -70,20 +69,59 @@ dataset = Dataset(path.join(in_dir,'data.nc'))
 # recuperation des altitudes
 altitudes = dataset.variables['altitude'][:,:]
 
+
+
 y = veriteTerrain(in_dir)
 
 end = len(y[0])
-hend = end/2
+hend = int(math.floor(end/2))
+print(hend)
 
-ytrain = y[:,:hend-1]#
-ytest = y[hend:end-1]#
+g = preparation_donnees(altitudes[:,:hend], nb_zoom)
+train = g[0]
+g = preparation_donnees(altitudes[:,hend:end], nb_zoom)
+test = g[0]
 
-g = preparation_donnees(altitudes[:,:hend-1], nb_zoom)
-train = g
-g = preparation_donnees(altitudes[hend:end-1], nb_zoom)
-test = g
+ytrain = y[:,:hend]#
+ytest = y[:,hend:end]#
 
 clf = RandomForestClassifier(n_estimators=100, max_depth=2,random_state=0)
 clf.fit(train, ytrain)
 
-clf.predict(test)
+predict = clf.predict(test)
+
+res1 = np.equal(ytest, predict)
+known = np.array(ytest)
+known[known != 3] = True
+known[known == 3] = False
+
+error = np.logical_and(res1,known)
+
+accuracy_score = float(sum(sum(error))) / float(sum(sum(known)))
+print(accuracy_score)
+
+img = ytest
+img[img == 3] = 128
+img[img == 1] = 255
+img = Image.fromarray(img)
+img = img.convert('L')
+img.save('sortie/veriteTerrain.jpg')
+
+img = predict
+img[img == 3] = 128
+img[img == 1] = 255
+img = Image.fromarray(predict)
+img = img.convert('L')
+img.save('sortie/predict.jpg')
+
+known[known == 1] = 255
+img = Image.fromarray(known)
+img = img.convert('L')
+img.save('sortie/known.jpg')
+
+img = Image.fromarray(res1)
+img = img.convert('L')
+img.save('sortie/erreur.jpg')
+
+#res = metrics.accuracy_score(ytest, predict, normalize=True)
+#print(res)
