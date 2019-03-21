@@ -29,12 +29,14 @@ $ ./qt-opensource-linux-x64-5.6.0.run
 install CGAL : 
 run : 
 ```console
+$ sudo apt-get install libcgal-dev
+```
+or run to build from source: 
+```console
 $ cd 
 $ git clone https://github.com/CGAL/cgal.git
 $ cd cgal
-$ mkdir build 
-$ cd build 
-$ cmake .. 
+$ cmake . 
 $ make 
 $ make install
 ```
