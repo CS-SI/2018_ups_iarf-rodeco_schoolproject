@@ -26,13 +26,13 @@ cv::Mat cannyDetector(cv::Mat src,int x1,int x2,int y1,int y2);
 int main(int argc, char** argv)
 {
   int x1,x2,y1,y2;
+  std::vector<Point_3> point;
   cv::Mat original_image = cv::imread(argv[1]);
   cv::namedWindow( "original image", cv::WINDOW_NORMAL);
   cv::imshow("original image",original_image);
   cv::waitKey(1);
   input_RIO (x1,x2,y1,y2);
   cv::Mat detected_edges = cannyDetector(original_image,x1,x2,y1,y2);
-  std::vector<Point_3> point;
   initialize_point(detected_edges, point);
   Delaunay dt(point.begin(), point.end());
   std::cout << dt.number_of_vertices() << std::endl;
@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 
 void initialize_point(cv::Mat img, std::vector<Point_3> &points)
 {
- /* This function initialize the points to be triangulated whithin the RIO
+ /* This function initialize the points to be triangulated within the RIO
    img : Edge rio image 
    points : vector of points to be triangulated 
  */
