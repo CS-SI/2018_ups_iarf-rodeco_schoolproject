@@ -401,7 +401,7 @@ int main_disp_to_heights(int c, char *v[])
 	      {
     int slave_id = list_pairs.data[pid].sight_slave;
 		list_pairs.data[pid].process = true;
-    s2pnc_write_slave_coordinate(&ncs2p_output, x, y, slave_id, &(list_pairs.data[pid].q1[1]), &(list_pairs.data[pid].q1[0]));
+    s2pnc_write_slave_coordinate(&ncs2p_output, y, x, slave_id, &(list_pairs.data[pid].q1[1]), &(list_pairs.data[pid].q1[0]));
 	      }
 	  }
 
@@ -429,8 +429,8 @@ int main_disp_to_heights(int c, char *v[])
     int id = sight->ID;
 		sum += pow(sight->err, 2.0);
 
-    s2pnc_write_view(&ncs2p_output, x, y, &id);
-    s2pnc_write_sigths_direction(&ncs2p_output, x, y, id, V);
+    s2pnc_write_view(&ncs2p_output, y, x, &id);
+    s2pnc_write_sigths_direction(&ncs2p_output, y, x, id, V);
 		nb_elt++;
 	      }
 
@@ -440,7 +440,7 @@ int main_disp_to_heights(int c, char *v[])
 				    &nb_views, &img_selected_views, &obj_file,
 				    local_nb_sights, width, height, tile_dir,
 				    &errMap_tab, sights_list,
-				    x, y, &list_pairs, &vertex_index);
+				    y, x, &list_pairs, &vertex_index);
 	      }
 
 	    // r.m.s. error
@@ -515,7 +515,7 @@ int main_disp_to_heights(int c, char *v[])
 				 ecef[width*3*y+3*x+2],
 				 &X[0],&X[1],&X[2]);
 
-      s2pnc_write_position(&ncs2p_output, x, y, &X[0], &X[1], &X[2]);
+      s2pnc_write_position(&ncs2p_output, y, x, &X[0], &X[1], &X[2]);
 
 	     // check with lon/lat bounding box
 	     if (X[0] < lon_m || X[0] > lon_M || X[1] < lat_m || X[1] > lat_M)
