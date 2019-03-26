@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import libtiff
 from libtiff import TIFF
+from scipy import interpolate
 from PIL import Image
 from os import path
 from netCDF4 import Dataset
@@ -115,31 +116,57 @@ dataset = Dataset(path.join(in_dir,'data.nc'))
 # recuperation des altitudes
 altitudes = dataset.variables['altitude'][:,:]
 
+# exclusion valeurs incongrues
+fill = 1e+36
+altitudes[altitudes>fill] = float("nan")
+altitudes = np.ma.masked_invalid(altitudes)
+x = np.arange(0,altitudes.shape[0])
+y = np.arange(0,altitudes.shape[1])
+xx, yy = np.meshgrid(x,y)
+x1 = xx[~altitudes.mask]
+y1 = yy[~altitudes.mask]
+newarr = altitudes[~altitudes.mask]
+altitudes = interpolate.griddata((x1, y1), newarr.ravel(), (xx, yy), method='cubic')
 
+# suppression de la dernière valeur incongrue
+endx = altitudes.shape[0]
+endy = altitudes.shape[1]
+if np.isnan(altitudes[endx-1, endy-1]):
+    altitudes[endx-1,endy-1] = altitudes[endx-1,endy-2]
+if np.isnan(altitudes[0, endy-1]):
+    altitudes[0,endy-1] = altitudes[endx-1,endy-2]
+if np.isnan(altitudes[endx-1, 0]):
+    altitudes[endx-1, 0] = altitudes[endx-2,endy-1]
+if np.isnan(altitudes[0, 0]):
+    altitudes[0, 0] = altitudes[endx+1,endy-+1]
 
-y = verite_terrain(in_dir)
+# recuperation de la verite terrain (3 classes : 0 sol, 1 bati, 3 on ne sais pas)
+y = np.asarray(verite_terrain(in_dir))
 
 # préparation donnees train et test
 train = preparation_features(altitudes[train_box[0]:train_box[1],
                                        train_box[2]:train_box[3]])
-
 test = preparation_features(altitudes[test_box[0]:test_box[1],
                                       test_box[2]:test_box[3]])
 
 # praparation des verite terrain train et test
 ytrain = np.ndarray.flatten(y[train_box[0]:train_box[1],
                               train_box[2]:train_box[3]])
-ytrain = ytrain.reshape(ytrain.shape[0],1)
-
 ytest = np.ndarray.flatten(y[test_box[0]:test_box[1],
                              test_box[2]:test_box[3]])
+
+# praparation des verite terrain train et test
+ytrain = ytrain.reshape(ytrain.shape[0],1)
 ytest = ytest.reshape(ytest.shape[0],1)
+
 
 # applique le masque aux donnée d'entrainement
 ytrain = np.ma.masked_equal(ytrain, 3)
 mask = np.repeat(np.ma.getmask(ytrain), train.shape[1], axis=1)
+train2 = np.copy(train)
 train = np.ma.array(train, mask=mask)
 ytrain = ytrain.compressed()
+ytrain = ytrain.reshape(ytrain.shape[0],1)
 train = train.compressed()
 train = train.reshape(ytrain.shape[0],nb_zoom+1)
 
