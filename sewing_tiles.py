@@ -5,7 +5,7 @@ Created on Fri Mar 15 15:43:52 2019
 @author: Alexandre Berdeaux
 """
 
-from PIL import Image
+from PIL import Image, ImageEnhance
 from netCDF4 import Dataset
 import xray
 import argparse
@@ -38,9 +38,10 @@ if __name__ == '__main__':
                  for rows in os.listdir(tiles_folder)]
 
     for i in range(len(datasets)):
-        datasets[i].reverse()
+        datasets[i] = sorted(datasets[i], key=lambda set: int(set.attrs['width_pos_complete_reference']))
 
     mergedrows = [xray.concat(datasets[i], 'height') for i in range(len(datasets))]
+    mergedrows = sorted(mergedrows, key=lambda dataset: dataset.attrs['height_pos_complete_reference'] )
     merged = xray.concat(mergedrows,'width')
 
     merged.to_netcdf(nc_folder,'w','NETCDF3_CLASSIC')
