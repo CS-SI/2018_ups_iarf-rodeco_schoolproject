@@ -10,9 +10,7 @@ from netCDF4 import Dataset
 from PIL import Image
 import matplotlib.pyplot as plot
 import numpy.ma as ma
-import numpy as np
 import json
-import xray
 import argparse
 import os
 
