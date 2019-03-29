@@ -4,11 +4,8 @@
 """
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn import metrics
 from skimage.transform import pyramid_gaussian
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 import libtiff
 from libtiff import TIFF
 from scipy import interpolate
@@ -64,7 +61,8 @@ def preparation_donnees(altitudes, nb_zoom):
   for i in range(1, nb_zoom, 1):
       Grad[i] = np.repeat(Grad[i], math.pow(2,i), axis=0)
       Grad[i] = np.repeat(Grad[i], math.pow(2,i), axis=1)
-
+      Grad[i] = np.resize(Grad[i],pyramid[0].shape)
+      
   return Grad
 
 
